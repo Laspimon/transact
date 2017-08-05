@@ -26,10 +26,11 @@ class ServerTestCase(unittest.TestCase):
             self.assertEqual(res.status_code, 302)
             self.assertEqual(urlparse(res.location).path, '/messages')
 
-    def test_messages_contains_greeting(self):
+    def test_list_messages_contains_greeting(self):
         with server.app.test_request_context():
-            index = url_for('index')
+            index = url_for('list_messages')
             res = self.client.get(index, follow_redirects=True)
+            self.assertEqual(res.status_code, 200)
             assert b'<h1>hello world!</h1>' in res.data
 
 if __name__ == '__main__':
