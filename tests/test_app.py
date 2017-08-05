@@ -10,7 +10,7 @@ logging.disable(logging.CRITICAL)
 class TestIndex(unittest.TestCase):
 
     def test_index_returns_greeting(self):
-        self.assertEquals(server.index(), 'Hello World')
+        self.assertEqual(server.index(), 'Hello World')
 
 class TestLiveIndex(flask_testing.LiveServerTestCase):
 
@@ -23,7 +23,7 @@ class TestLiveIndex(flask_testing.LiveServerTestCase):
 
     def test_server_awake(self):
         res = urllib.request.urlopen(self.get_server_url())
-        self.assertEquals(res.code, 200)
+        self.assertEqual(res.code, 200)
 
 if __name__ == '__main__':
     unittest.main()
