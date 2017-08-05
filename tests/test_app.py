@@ -1,8 +1,11 @@
 import flask_testing
+import logging
 import unittest
 import urllib
 
 import server
+
+logging.disable(logging.CRITICAL)
 
 class TestIndex(unittest.TestCase):
 
@@ -12,6 +15,7 @@ class TestIndex(unittest.TestCase):
 class TestLiveIndex(flask_testing.LiveServerTestCase):
 
     def create_app(self):
+        app = server.Flask(server.__name__)
         app = server.app
         app.config['TESTING'] = True
         app.config['LIVE_SERVERPORT'] = 0
