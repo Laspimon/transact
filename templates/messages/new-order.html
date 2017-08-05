@@ -1,0 +1,56 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<form action="/new" method="POST">
+    <label onClick='standard_choice()'>
+        <input type='radio' name='drink' value='g&t' checked='checked'>Gin & Tonic</input>
+    </label>
+    <label onClick='standard_choice()'>
+        <input type='radio' name='drink' value='espresso-martini'>Espresso Martini</input>
+    </label>
+    <label onClick='standard_choice()'>
+        <input type='radio' name='drink' value='negroni'>Negroni</input>
+    </label>
+    <label onClick='standard_choice()'>
+        <input type='radio' name='drink' value='beer'>Beer</input>
+    </label>
+    </br>
+    <label onClick='special_order()'>
+        <input type='radio' name='drink' value='other'>Other:</input>
+        <input type='text' id='other_text' name='other' size='40' value='The choice is yours' />
+    </label>
+    <p>
+    <textarea name="message" style="height: 200px; width: 200px"></textarea>
+    </p>
+    <p>
+    <input type="submit"/>
+    </p>
+</form>
+
+<script>
+function standard_choice(){
+    a = document.getElementById('other_text');
+    a.value = choose_one(
+        [
+            'You can have anything you want!',
+            'Don\'t be boring...',
+            'You only live once, you know...',
+            'Make it two!'
+        ])
+}
+
+function special_order(){
+    a = document.getElementById('other_text');
+    a.value='';
+    a.select();
+}
+
+
+function choose_one(a_number_of_choices) {
+    var index = Math.floor(a_number_of_choices.length * Math.random());
+    return a_number_of_choices[index];
+}
+</script>
+
+{% endblock %}
+
