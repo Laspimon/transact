@@ -24,7 +24,7 @@ def new_order_form():
     return render_template('messages/new-order.html')
 
 @app.route('/new', methods=['POST'])
-def receive_message():
+def receive_order():
     message = request.form.get('message', '')
     drink = {
         'g&t': 'Gin & Tonic',
@@ -39,7 +39,7 @@ def receive_message():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
-    #save_massage()
+    #save_order()
     #broadcast_message()
     return ('drink', 204)
 

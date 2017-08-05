@@ -39,16 +39,16 @@ class ServerTestCase(unittest.TestCase):
         assert b'Beer' in res.data
         assert b'Other' in res.data
 
-    def test_receive_message_returns_204_on_success(self):
+    def test_receive_order_returns_204_on_success(self):
         data = {'drink': 'g&t', 'message': 'Make it strong.'}
         with server.app.test_request_context():
             res = self.client.post('/new', data=data)
         self.assertEqual(res.status_code, 204)
         self.assertEqual(res.data, b'')
 
-    def test_receive_message_returns_400_on_no_drink_selection(self):
+    def test_receive_order_returns_400_on_no_drink_selection(self):
         with server.app.test_request_context():
-            response_data, status_code = server.receive_message()
+            response_data, status_code = server.receive_order()
         self.assertEqual(
             response_data,
             'Something\'s wrong with your order, perhaps you meant to '
