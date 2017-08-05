@@ -1,4 +1,6 @@
+import flask_testing
 import unittest
+import urllib
 
 import server
 
@@ -6,6 +8,18 @@ class TestIndex(unittest.TestCase):
 
     def test_index_returns_greeting(self):
         self.assertEquals(server.index(), 'Hello World')
+
+class TestLiveIndex(flask_testing.LiveServerTestCase):
+
+    def create_app(self):
+        app = server.app
+        app.config['TESTING'] = True
+        app.config['LIVE_SERVERPORT'] = 0
+        return app
+
+    def test_server_awake(self):
+        res = urllib.request.urlopen(self.get_server_url())
+        self.assertEquals(res.code, 200)
 
 if __name__ == '__main__':
     unittest.main()
