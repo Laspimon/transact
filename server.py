@@ -40,8 +40,11 @@ def receive_order():
             'perhaps you meant to select "Other".',
             400)
     #save_order()
-    #broadcast_message()
+    broadcast_message()
     return ('drink', 204)
+
+def broadcast_message():
+    raise NotImplementedError
 
 if __name__ == '__main__':
     app.run()
