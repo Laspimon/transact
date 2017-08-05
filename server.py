@@ -1,4 +1,13 @@
+import logging
+
 from flask import Flask, redirect, render_template, request
+
+logger = logging.getLogger('input_log')
+logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler('transact.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 app = Flask(__name__)
 
@@ -24,6 +33,7 @@ def receive_message():
         'beer': 'Beer',
         'other': request.form.get('other')
     }.get(request.form.get('drink'))
+    logger.info(str(drink) + ': ' + message)
     if drink is None:
         return (
             'Something\'s wrong with your order, '
