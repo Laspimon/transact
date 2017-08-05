@@ -1,6 +1,7 @@
 import logging
 
 from flask import Flask, redirect, render_template, request
+from flask_socketio import SocketIO
 
 logger = logging.getLogger('input_log')
 logger.setLevel(logging.INFO)
@@ -10,6 +11,7 @@ file_handler.setFormatter(formatter)
 logger.addHandler(file_handler)
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 @app.route('/', methods=['GET'])
 def index():
@@ -47,4 +49,4 @@ def broadcast_message():
     raise NotImplementedError
 
 if __name__ == '__main__':
-    app.run()
+    socketio.run(app)
