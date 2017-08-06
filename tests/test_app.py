@@ -56,6 +56,13 @@ class ServerTestCase(unittest.TestCase):
             'select "Other".',)
         self.assertEqual(status_code, 400)
 
+    def test_live_orders_list_contains_Orders_header(self):
+        with server.app.test_request_context():
+            index = url_for('live_orders_list')
+        res = self.app_client.get(index)
+        self.assertEqual(res.status_code, 200)
+        assert b'<h1>Orders:</h1>' in res.data
+
     def test_app_broadcasts_orders(self):
         data = {'drink': 'g&t', 'message': 'Make it strong.'}
         with server.app.test_request_context():

@@ -45,6 +45,9 @@ def receive_order():
     broadcast_message(drink, message)
     return ('drink', 204)
 
+@app.route('/live', methods=['GET'])
+def live_orders_list():
+    return render_template('/messages/live-orders.html')
 
 def broadcast_message(drink, message):
     socketio.emit(

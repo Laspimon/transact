@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block body %}
+<noscript>
+    You need to enable JavaScript to run this app.
+</noscript>
+
+<h1>Orders:</h1>
+<ul id="orders"></ul>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+socket.on('incomming', function(order) {
+    var list = document.getElementById("orders");
+    var li = document.createElement("li");
+    var line = order.drink.toString() + ' -- ' + order.message.toString();
+    li.appendChild(document.createTextNode(line));
+    list.appendChild(li);
+});
+</script>
+{% endblock %}
