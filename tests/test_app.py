@@ -11,9 +11,11 @@ class ServerTestCase(unittest.TestCase):
         server.app.testing = True
         self.app_client = server.app.test_client()
         self.socketio_client = server.socketio.test_client(server.app)
+        server.db.create_all()
 
     def tearDown(self):
-        pass
+        server.db.session.remove()
+        server.db.drop_all()
 
     def test_index_redirects_with_302_to_orders(self):
         with server.app.test_request_context():
@@ -77,6 +79,28 @@ class ServerTestCase(unittest.TestCase):
             args,
             {'drink': 'Gin & Tonic', 'message': 'Make it strong.'}
         )
+
+    def test_Order_is_created(self):
+        order = server.Order('Gin', 'Now')
+        self.assertEqual(str(order)[:19], 'Order("Gin", "Now",')
+        self.assertEqual(
+            order.nicely_formatted[:25], 'Gin, Now (order received:')
+
+    def test_Order_throws_up(self):
+        self.assertRaises(ValueError, server.Order, 1, 'Now')
+        self.assertRaises(ValueError, server.Order, 'Wine', 1)
+        self.assertRaises(
+            ValueError, server.Order, 'Whatever Liquor', 'Lots of it, Please',
+            '2000-01-01')
+
+    def test_empty_database_returns_empty_result(self):
+        all_orders = server.Order.query.all()
+        self.assertEqual(len(all_orders), 0)
+
+    def test_save_order_saves_order(self):
+        server.save_order('Gin', 'Now')
+        all_orders = server.Order.query.all()
+        self.assertEqual(len(all_orders), 1)
 
 if __name__ == '__main__':
     unittest.main()
