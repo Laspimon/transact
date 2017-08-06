@@ -6,6 +6,8 @@ from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
+ctime_format = "%a %b %d %H:%M:%S %Y"
+
 logger = logging.getLogger('input_log')
 logger.setLevel(logging.INFO)
 file_handler = logging.FileHandler('transact.log')
@@ -84,9 +86,12 @@ class Order(db.Model):
         if order_received is None:
             order_received = datetime.now()
         if not isinstance(order_received, datetime):
-            raise ValueError('order_received must by datetime instance')
+            try:
+                order_received = datetime.strptime(order_received, ctime_format)
+            except ValueError:
+                raise ValueError('order_received must be datetime instance')
         if False in (isinstance(drink, str), isinstance(message, str)):
-            raise ValueError('drink and message must by strings')
+            raise ValueError('drink and message must be strings')
         self.order_received = order_received
         self.drink = drink
         self.message = message
