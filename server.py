@@ -60,4 +60,8 @@ def broadcast_message(drink, message):
     )
 
 if __name__ == '__main__':
-    socketio.run(app)
+    try:
+        socketio.run(app)
+    except KeyboardInterrupt:
+        logger.info('Server shut down by user')
+        print ('Exiting.')
