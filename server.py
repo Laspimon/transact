@@ -15,15 +15,15 @@ socketio = SocketIO(app)
 
 @app.route('/', methods=['GET'])
 def index():
-    return redirect('/messages', code=302)
+    return redirect('/orders', code=302)
 
-@app.route('/messages', methods=['GET'])
-def list_messages():
-    return render_template('/messages/index.html')
+@app.route('/orders', methods=['GET'])
+def list_orders():
+    return render_template('/orders/index.html')
 
 @app.route('/new', methods=['GET'])
 def new_order_form():
-    return render_template('messages/new-order.html')
+    return render_template('orders/new-order.html')
 
 @app.route('/new', methods=['POST'])
 def receive_order():
@@ -47,7 +47,7 @@ def receive_order():
 
 @app.route('/live', methods=['GET'])
 def live_orders_list():
-    return render_template('/messages/live-orders.html')
+    return render_template('/orders/live-orders.html')
 
 def broadcast_message(drink, message):
     socketio.emit(

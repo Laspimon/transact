@@ -15,16 +15,16 @@ class ServerTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_index_redirects_with_302_to_messages(self):
+    def test_index_redirects_with_302_to_orders(self):
         with server.app.test_request_context():
             index = url_for('index')
         res = self.app_client.get(index, follow_redirects=False)
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(urlparse(res.location).path, '/messages')
+        self.assertEqual(urlparse(res.location).path, '/orders')
 
-    def test_list_messages_contains_greeting(self):
+    def test_list_orders_contains_greeting(self):
         with server.app.test_request_context():
-            index = url_for('list_messages')
+            index = url_for('list_orders')
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'<h1>hello world!</h1>' in res.data
