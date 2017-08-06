@@ -28,12 +28,24 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 302)
         self.assertEqual(urlparse(res.location).path, '/orders')
 
-    def test_list_orders_contains_greeting(self):
+    def test_list_orders_contains_header(self):
         with app.test_request_context():
             index = url_for('list_orders')
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
-        assert b'<h1>hello world!</h1>' in res.data
+        assert b'<h1>All Orders Ever:</h1>' in res.data
+
+
+    def test_list_orders_gets_updated(self):
+        with app.test_request_context():
+            index = url_for('list_orders')
+        res = self.app_client.get(index)
+        self.assertEqual(res.status_code, 200)
+        assert b'<li >Gin, Now (order received:' not in res.data
+        save_order('Gin', 'Now', self.db)
+        res = self.app_client.get(index)
+        self.assertEqual(res.status_code, 200)
+        assert b'<li >Gin, Now (order received:' in res.data
 
     def test_new_order_form_renders_choices(self):
         with app.test_request_context():

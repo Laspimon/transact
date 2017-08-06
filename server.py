@@ -27,7 +27,8 @@ def index():
 
 @app.route('/orders', methods=['GET'])
 def list_orders():
-    return render_template('/orders/index.html')
+    all_orders = Order.query.all()
+    return render_template('/orders/index.html', orders = all_orders)
 
 @app.route('/new', methods=['GET'])
 def new_order_form():
