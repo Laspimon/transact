@@ -49,7 +49,7 @@ def receive_order():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
-    save_order(drink, message)
+    save_order(drink, message, db)
     broadcast_message(drink, message)
     return ('drink', 204)
 
@@ -67,10 +67,10 @@ def broadcast_message(drink, message):
         broadcast=True
     )
 
-def save_order(drink, message):
+def save_order(drink, message, database):
     order = Order(drink, message)
-    db.session.add(order)
-    db.session.commit()
+    database.session.add(order)
+    database.session.commit()
 
 class Order(db.Model):
 

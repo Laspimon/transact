@@ -102,7 +102,7 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(len(all_orders), 0)
 
     def test_save_order_saves_order(self):
-        save_order('Gin', 'Now')
+        save_order('Gin', 'Now', self.db)
         all_orders = Order.query.all()
         self.assertEqual(len(all_orders), 1)
 
