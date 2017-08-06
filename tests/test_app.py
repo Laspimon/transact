@@ -9,7 +9,7 @@ class ServerTestCase(unittest.TestCase):
 
     def setUp(self):
         server.app.testing = True
-        self.client = server.app.test_client()
+        self.app_client = server.app.test_client()
 
     def tearDown(self):
         pass
@@ -17,21 +17,21 @@ class ServerTestCase(unittest.TestCase):
     def test_index_redirects_with_302_to_messages(self):
         with server.app.test_request_context():
             index = url_for('index')
-        res = self.client.get(index, follow_redirects=False)
+        res = self.app_client.get(index, follow_redirects=False)
         self.assertEqual(res.status_code, 302)
         self.assertEqual(urlparse(res.location).path, '/messages')
 
     def test_list_messages_contains_greeting(self):
         with server.app.test_request_context():
             index = url_for('list_messages')
-        res = self.client.get(index)
+        res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'<h1>hello world!</h1>' in res.data
 
     def test_new_order_form_renders_choices(self):
         with server.app.test_request_context():
             index = url_for('new_order_form')
-        res = self.client.get(index)
+        res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'Gin & Tonic' in res.data
         assert b'Espresso Martini' in res.data
@@ -42,7 +42,7 @@ class ServerTestCase(unittest.TestCase):
     def test_receive_order_returns_204_on_success(self):
         data = {'drink': 'g&t', 'message': 'Make it strong.'}
         with server.app.test_request_context():
-            res = self.client.post('/new', data=data)
+            res = self.app_client.post('/new', data=data)
         self.assertEqual(res.status_code, 204)
         self.assertEqual(res.data, b'')
 
