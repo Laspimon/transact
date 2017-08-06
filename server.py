@@ -42,11 +42,19 @@ def receive_order():
             'perhaps you meant to select "Other".',
             400)
     #save_order()
-    broadcast_message()
+    broadcast_message(drink, message)
     return ('drink', 204)
 
-def broadcast_message():
-    raise NotImplementedError
+
+def broadcast_message(drink, message):
+    socketio.emit(
+        'incomming',
+        {
+            'drink': drink,
+            'message': message
+        },
+        broadcast=True
+    )
 
 if __name__ == '__main__':
     socketio.run(app)

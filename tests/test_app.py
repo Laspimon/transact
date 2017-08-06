@@ -10,6 +10,7 @@ class ServerTestCase(unittest.TestCase):
     def setUp(self):
         server.app.testing = True
         self.app_client = server.app.test_client()
+        self.socketio_client = server.socketio.test_client(server.app)
 
     def tearDown(self):
         pass
@@ -54,6 +55,21 @@ class ServerTestCase(unittest.TestCase):
             'Something\'s wrong with your order, perhaps you meant to '
             'select "Other".',)
         self.assertEqual(status_code, 400)
+
+    def test_app_broadcasts_orders(self):
+        data = {'drink': 'g&t', 'message': 'Make it strong.'}
+        with server.app.test_request_context():
+            res = self.app_client.post('/new', data=data)
+        received = self.socketio_client.get_received()
+        data = received[0]
+        name = data.get('name')
+        args = data.get('args')[0]
+        self.assertEqual(len(received), 1)
+        self.assertEqual(name, 'incomming')
+        self.assertEqual(
+            args,
+            {'drink': 'Gin & Tonic', 'message': 'Make it strong.'}
+        )
 
 if __name__ == '__main__':
     unittest.main()
