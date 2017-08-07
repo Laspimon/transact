@@ -1,11 +1,17 @@
 import json
 import logging
+import sys
 
 from datetime import datetime
 
 from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
+
+from redis import Redis
+
+def get_redis_connection(decode_responses = False):
+    return Redis(host='redis', decode_responses = decode_responses)
 
 ctime_format = "%a %b %d %H:%M:%S %Y"
 
@@ -119,11 +125,24 @@ class Order(db.Model):
     def put_in_queue(self):
         json = self.make_as_json
         if self.message == 'do nothing': return
+        redis = get_redis_connection()
+        redis.rpush('queue', json)
+
+def consumer():
+    redis = get_redis_connection(decode_responses = True)
+    while True:
+        source, order = redis.blpop('queue')
+        order = json.loads(order)
+        order = Order(**order)
+        order.save_order(db)
 
 if __name__ == '__main__':
     db.create_all()
     try:
-        socketio.run(app)
+        if 'dbwriter' in sys.argv:
+            consumer()
+        else:
+            socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
         logger.info('Server shut down by user')
         print ('Exiting.')
