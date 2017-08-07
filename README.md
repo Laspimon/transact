@@ -1,9 +1,13 @@
 # transact
 Persist messages to a database server, while also pushing to live view on html page in browser
+Utilizing Websockets, Redis and Flask.
+Best enjoyed with a big, cold glass of anything.
 
 To install:
 
 ```
+git clone https://github.com/Laspimon/transact.git
+cd transact
 pip install -r requirements.txt
 ```
 
