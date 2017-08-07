@@ -11,7 +11,9 @@ from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 
 def get_redis_connection(decode_responses = False):
-    return Redis(host='redis', decode_responses = decode_responses)
+    if 'docker' in sys.argv:
+        return Redis(host='redis', decode_responses = decode_responses)
+    return Redis(decode_responses = decode_responses)
 
 ctime_format = "%a %b %d %H:%M:%S %Y"
 
