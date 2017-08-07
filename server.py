@@ -31,6 +31,22 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app)
 db = SQLAlchemy(app)
 
+@app.route('/api/v1/orders/all', methods=['GET'])
+def get_all_orders():
+    all_orders = transform_orders_to_dicts(Order.query.all())
+    return json.dumps(all_orders)
+
+def transform_orders_to_dicts(list_of_orders):
+    return [order.make_as_dict for order in list_of_orders]
+
+@app.route('/api/v1/orders/all', methods=['POST'])
+def put_orders_api(json_data):
+    put_orders(json_data)
+
+def put_orders(json_data):
+    redis = get_redis_connection()
+    redis.rpush('batch', json_data)
+
 @app.route('/', methods=['GET'])
 def index():
     return redirect('/orders', code=302)
@@ -99,14 +115,18 @@ class Order(db.Model):
 
     @property
     def make_as_json(self):
-        return json.dumps({
+        return json.dumps(self.make_as_dict)
+
+    @property
+    def make_as_dict(self):
+        return {
             'drink': self.drink,
             'message': self.message,
-            'order_received': self.order_received.ctime()})
+            'order_received': self.order_received.ctime()}
 
-    def save_order(self, database):
+    def save_order(self, database, commit=False):
         database.session.add(self)
-        database.session.commit()
+        if commit: database.session.commit()
 
     def make_a_note(self):
         self.broadcast()
@@ -131,10 +151,14 @@ class Order(db.Model):
 def consumer():
     redis = get_redis_connection(decode_responses = True)
     while True:
-        source, order = redis.blpop('queue')
-        order = json.loads(order)
-        order = Order(**order)
-        order.save_order(db)
+        source, orders = redis.blpop(['queue', 'batch'])
+        if source == 'queue':
+            order = json.loads(orders)
+            Order(**order).save_order(db)
+        if source == 'batch':
+            for order in json.loads(orders):
+                Order(**order).save_order(db, commit = False)
+            db.session.commit()
 
 if __name__ == '__main__':
     db.create_all()
@@ -145,4 +169,3 @@ if __name__ == '__main__':
             socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
         logger.info('Server shut down by user')
-        print ('Exiting.')
