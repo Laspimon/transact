@@ -160,12 +160,24 @@ def consumer():
                 Order(**order).save_order(db, commit = False)
             db.session.commit()
 
+def prepare_demo_data():
+    dummy_data = transform_orders_to_dicts(Order(*_) for _ in (
+        ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
+        ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
+        ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
+        ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
+        ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
+        ('Rosy Martini', 'Shaken not stirred')))
+    json_data = json.dumps(dummy_data)
+    put_orders(json_data)
+
 if __name__ == '__main__':
     db.create_all()
     try:
         if 'dbwriter' in sys.argv:
             consumer()
         else:
+            prepare_demo_data()
             socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
         logger.info('Server shut down by user')
