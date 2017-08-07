@@ -1,3 +1,4 @@
+import json
 import logging
 
 from datetime import datetime
@@ -53,28 +54,12 @@ def receive_order():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
-    save_order(drink, message, db)
-    broadcast_message(drink, message)
+    Order(drink, message).make_a_note()
     return ('drink', 204)
 
 @app.route('/live', methods=['GET'])
 def live_orders_list():
     return render_template('/orders/live-orders.html')
-
-def broadcast_message(drink, message):
-    socketio.emit(
-        'incomming',
-        {
-            'drink': drink,
-            'message': message
-        },
-        broadcast=True
-    )
-
-def save_order(drink, message, database):
-    order = Order(drink, message)
-    database.session.add(order)
-    database.session.commit()
 
 class Order(db.Model):
 
@@ -105,6 +90,35 @@ class Order(db.Model):
     def nicely_formatted(self):
         return '{}, {} (order received: {})'.format(
             self.drink, self.message, self.order_received.ctime())
+
+    @property
+    def make_as_json(self):
+        return json.dumps({
+            'drink': self.drink,
+            'message': self.message,
+            'order_received': self.order_received.ctime()})
+
+    def save_order(self, database):
+        database.session.add(self)
+        database.session.commit()
+
+    def make_a_note(self):
+        self.broadcast()
+        self.put_in_queue()
+
+    def broadcast(self):
+        socketio.emit(
+            'incomming',
+            {
+                'drink': self.drink,
+                'message': self.message
+            },
+            broadcast=True
+        )
+
+    def put_in_queue(self):
+        json = self.make_as_json
+        if self.message == 'do nothing': return
 
 if __name__ == '__main__':
     db.create_all()

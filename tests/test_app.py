@@ -3,7 +3,7 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, db, socketio, receive_order, Order, save_order
+from server import app, db, socketio, receive_order, Order
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
@@ -42,7 +42,7 @@ class ServerTestCase(unittest.TestCase):
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'<li >Gin, Now (order received:' not in res.data
-        save_order('Gin', 'Now', self.db)
+        Order('Gin', 'Now').save_order(self.db)
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'<li >Gin, Now (order received:' in res.data
@@ -59,7 +59,7 @@ class ServerTestCase(unittest.TestCase):
         assert b'Other' in res.data
 
     def test_receive_order_returns_204_on_success(self):
-        data = {'drink': 'g&t', 'message': 'Make it strong.'}
+        data = {'drink': 'g&t', 'message': 'do nothing'}
         with app.test_request_context():
             res = self.app_client.post('/new', data=data)
         self.assertEqual(res.status_code, 204)
@@ -82,9 +82,7 @@ class ServerTestCase(unittest.TestCase):
         assert b'<h1>Orders:</h1>' in res.data
 
     def test_app_broadcasts_orders(self):
-        data = {'drink': 'g&t', 'message': 'Make it strong.'}
-        with app.test_request_context():
-            res = self.app_client.post('/new', data=data)
+        Order('Gin & Tonic', 'Make it strong.').broadcast()
         received = self.socketio_client.get_received()
         data = received[0]
         name = data.get('name')
@@ -114,9 +112,14 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(len(all_orders), 0)
 
     def test_save_order_saves_order(self):
-        save_order('Gin', 'Now', self.db)
+        Order('Gin', 'Now').save_order(self.db)
         all_orders = Order.query.all()
         self.assertEqual(len(all_orders), 1)
+
+    def test_make_as_json_makes_json(self):
+        json = Order('Green Tea Mambo', 'You only live once').make_as_json
+        assert '{"drink": "Green Tea Mambo",' in json
+        assert 'Mambo", "message": "You only live once"' in json
 
 if __name__ == '__main__':
     unittest.main()
