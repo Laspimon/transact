@@ -23,7 +23,7 @@ class ServerTestCase(unittest.TestCase):
 
     def test_index_redirects_with_302_to_orders(self):
         with app.test_request_context():
-            index = url_for('index')
+            index = url_for('get_index_page')
         res = self.app_client.get(index, follow_redirects=False)
         self.assertEqual(res.status_code, 302)
         self.assertEqual(urlparse(res.location).path, '/orders')

@@ -77,12 +77,11 @@ def post_new_order():
     Receiver.put_in_queue(order)
     return ('drink', 204)
 
-class PageIndex(views.MethodView):
-    def get(self):
-        return redirect('/orders', code=302)
+@app.route('/', methods=['GET'])
+def get_index_page():
+    return redirect('/orders', code=302)
 
-app.add_url_rule('/', view_func=PageIndex.as_view('index'),
-    methods=['GET'])
+
 
 class ListOrders(views.MethodView):
     def get(self):
