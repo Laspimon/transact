@@ -72,11 +72,34 @@ app.add_url_rule('/api/v1/orders/', defaults={'order_id': None},
 app.add_url_rule('/api/v1/orders/<int:order_id>',
     view_func = view_func, methods=['GET'])
 
+class PageNew(views.MethodView):
+
+    def get(self):
+        return render_template('orders/new-order.html')
+
+    def post(self):
+        message = request.form.get('message', '')
+        drink = {
+            'g&t': 'Gin & Tonic',
+            'espresso-martini': 'Espresso Martini',
+            'negroni': 'Negroni',
+            'beer': 'Beer',
+            'other': request.form.get('other')
+        }.get(request.form.get('drink'))
+        if drink is None:
+            return (
+                'Something\'s wrong with your order, '
+                'perhaps you meant to select "Other".',
+                400)
+        order = Order(drink, message)
+        Receiver.broadcast(order)
+        Receiver.put_in_queue(order)
+        return ('drink', 204)
+
+app.add_url_rule('/new', view_func=PageNew.as_view('new'),
+                     methods=['GET', 'POST'])
 
 
-@app.route('/', methods=['GET'])
-def index():
-    return redirect('/orders', code=302)
 
 @app.route('/orders', methods=['GET'])
 def list_orders():
