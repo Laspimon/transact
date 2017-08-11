@@ -86,13 +86,10 @@ def get_orders_page():
     all_orders = Order.query.all()
     return render_template('/orders/index.html', orders = all_orders)
 
+@app.route('/live', methods=['GET'])
+def get_live_orders():
+    return render_template('/orders/live-orders.html')
 
-class LiveOrders(views.MethodView):
-    def get(self):
-        return render_template('/orders/live-orders.html')
-
-app.add_url_rule('/live', view_func=LiveOrders.as_view('live_orders_list'),
-    methods=['GET'])
 
 class Order(db.Model):
 
