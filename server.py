@@ -163,16 +163,16 @@ def consumer():
             db.session.commit()
 
 def prepare_demo_data():
-    api = OrdersAPI()
-    dummy_data = api.transform_orders_to_dicts(Order(*_) for _ in (
+    dummy_orders = [Order(*_) for _ in (
         ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
         ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
         ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
         ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
         ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
-        ('Rosy Martini', 'Shaken not stirred')))
+        ('Rosy Martini', 'Shaken not stirred'))]
+    dummy_data = [order.make_as_dict for order in dummy_orders]
     json_data = json.dumps(dummy_data)
-    api.put_orders(json_data)
+    post_order(json_data)
 
 if __name__ == '__main__':
     db.create_all()
