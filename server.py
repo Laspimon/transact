@@ -161,6 +161,10 @@ class Order(db.Model):
         self.drink = drink
         self.message = message
 
+    def save_order(self, database, commit=False):
+        database.session.add(self)
+        if commit: database.session.commit()
+
     def __repr__(self):
         return 'Order("{}", "{}", "{}")'.format(
             self.drink, self.message, self.order_received)
@@ -181,9 +185,6 @@ class Order(db.Model):
             'message': self.message,
             'order_received': self.order_received.ctime()}
 
-    def save_order(self, database, commit=False):
-        database.session.add(self)
-        if commit: database.session.commit()
 
     def make_a_note(self):
         self.broadcast()
