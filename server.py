@@ -81,15 +81,11 @@ def post_new_order():
 def get_index_page():
     return redirect('/orders', code=302)
 
+@app.route('/orders', methods=['GET'])
+def get_orders_page():
+    all_orders = Order.query.all()
+    return render_template('/orders/index.html', orders = all_orders)
 
-
-class ListOrders(views.MethodView):
-    def get(self):
-        all_orders = Order.query.all()
-        return render_template('/orders/index.html', orders = all_orders)
-
-app.add_url_rule('/orders', view_func=ListOrders.as_view('list_orders'),
-    methods=['GET'])
 
 class LiveOrders(views.MethodView):
     def get(self):
