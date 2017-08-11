@@ -52,32 +52,30 @@ def post_order(json_data):
     redis = get_redis_connection()
     redis.rpush('batch', json_data)
 
-class PageNew(views.MethodView):
+# Page: New order form
+@app.route('/new', methods=['GET'])
+def get_new_order():
+    return render_template('orders/new-order.html')
 
-    def get(self):
-        return render_template('orders/new-order.html')
-
-    def post(self):
-        message = request.form.get('message', '')
-        drink = {
-            'g&t': 'Gin & Tonic',
-            'espresso-martini': 'Espresso Martini',
-            'negroni': 'Negroni',
-            'beer': 'Beer',
-            'other': request.form.get('other')
-        }.get(request.form.get('drink'))
-        if drink is None:
-            return (
-                'Something\'s wrong with your order, '
-                'perhaps you meant to select "Other".',
-                400)
-        order = Order(drink, message)
-        Receiver.broadcast(order)
-        Receiver.put_in_queue(order)
-        return ('drink', 204)
-
-app.add_url_rule('/new', view_func=PageNew.as_view('new_order_form'),
-                     methods=['GET', 'POST'])
+@app.route('/new', methods=['POST'])
+def post_new_order():
+    message = request.form.get('message', '')
+    drink = {
+        'g&t': 'Gin & Tonic',
+        'espresso-martini': 'Espresso Martini',
+        'negroni': 'Negroni',
+        'beer': 'Beer',
+        'other': request.form.get('other')
+    }.get(request.form.get('drink'))
+    if drink is None:
+        return (
+            'Something\'s wrong with your order, '
+            'perhaps you meant to select "Other".',
+            400)
+    order = Order(drink, message)
+    Receiver.broadcast(order)
+    Receiver.put_in_queue(order)
+    return ('drink', 204)
 
 class PageIndex(views.MethodView):
     def get(self):

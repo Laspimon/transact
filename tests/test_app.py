@@ -49,7 +49,7 @@ class ServerTestCase(unittest.TestCase):
 
     def test_new_order_form_renders_choices(self):
         with app.test_request_context():
-            index = url_for('new_order_form')
+            index = url_for('get_new_order')
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'Gin & Tonic' in res.data
