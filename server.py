@@ -48,17 +48,6 @@ class OrdersAPI(views.MethodView):
     def post(self, json_data):
         self.put_orders(json_data)
 
-    def prepare_demo_data(self):
-        dummy_data = self.transform_orders_to_dicts(Order(*_) for _ in (
-            ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
-            ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
-            ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
-            ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
-            ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
-            ('Rosy Martini', 'Shaken not stirred')))
-        json_data = json.dumps(dummy_data)
-        self.put_orders(json_data)
-
     def put_orders(self, json_data):
         redis = get_redis_connection()
         redis.rpush('batch', json_data)
@@ -96,7 +85,7 @@ class PageNew(views.MethodView):
         Receiver.put_in_queue(order)
         return ('drink', 204)
 
-app.add_url_rule('/new', view_func=PageNew.as_view('new'),
+app.add_url_rule('/new', view_func=PageNew.as_view('new_order_form'),
                      methods=['GET', 'POST'])
 
 class PageIndex(views.MethodView):
@@ -187,7 +176,6 @@ class Receiver():
     @classmethod
     def put_in_queue(self, order):
         json = order.make_as_json
-        if order.message == 'do nothing': return
         redis = get_redis_connection()
         redis.rpush('queue', json)
 
@@ -202,6 +190,18 @@ def consumer():
             for order in json.loads(orders):
                 Order(**order).save_order(db, commit = False)
             db.session.commit()
+
+def prepare_demo_data():
+    api = OrdersAPI()
+    dummy_data = api.transform_orders_to_dicts(Order(*_) for _ in (
+        ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
+        ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
+        ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
+        ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
+        ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
+        ('Rosy Martini', 'Shaken not stirred')))
+    json_data = json.dumps(dummy_data)
+    api.put_orders(json_data)
 
 if __name__ == '__main__':
     db.create_all()
