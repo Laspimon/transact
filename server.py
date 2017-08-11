@@ -36,30 +36,21 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app)
 db = SQLAlchemy(app)
 
-class OrdersAPI(views.MethodView):
+# Orders API
+@app.route('/api/v1/orders/')
+def get_orders(order_id = None, methods=['GET']):
+    all_orders = Order.query.all()
+    as_dicts = [order.make_as_dict for order in all_orders]
+    return json.dumps(all_orders)
 
-    def get(self, order_id = None):
-        if order_id is None:
-            all_orders = self.transform_orders_to_dicts(Order.query.all())
-            return json.dumps(all_orders)
-        else:
-            pass
+@app.route('/api/v1/orders/<order_id>', defaults={'order_id': None}, methods=['GET'])
+def get_order(order_id = None):
+    raise NotImplementedError
 
-    def post(self, json_data):
-        self.put_orders(json_data)
-
-    def put_orders(self, json_data):
-        redis = get_redis_connection()
-        redis.rpush('batch', json_data)
-
-    def transform_orders_to_dicts(self, list_of_orders):
-        return [order.make_as_dict for order in list_of_orders]
-
-view_func = OrdersAPI.as_view('api_v1_orders')
-app.add_url_rule('/api/v1/orders/', defaults={'order_id': None},
-    view_func = view_func, methods=['GET', 'POST'])
-app.add_url_rule('/api/v1/orders/<int:order_id>',
-    view_func = view_func, methods=['GET'])
+@app.route('/api/v1/orders/', methods=['POST'])
+def post_order(json_data):
+    redis = get_redis_connection()
+    redis.rpush('batch', json_data)
 
 class PageNew(views.MethodView):
 
