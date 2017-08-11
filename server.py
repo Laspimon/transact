@@ -5,7 +5,7 @@ import os
 
 from datetime import datetime
 
-from flask import Flask, redirect, render_template, request
+from flask import Flask, redirect, render_template, request, views
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
@@ -36,21 +36,43 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app)
 db = SQLAlchemy(app)
 
-@app.route('/api/v1/orders/all', methods=['GET'])
-def get_all_orders():
-    all_orders = transform_orders_to_dicts(Order.query.all())
-    return json.dumps(all_orders)
+class OrdersAPI(views.MethodView):
 
-def transform_orders_to_dicts(list_of_orders):
-    return [order.make_as_dict for order in list_of_orders]
+    def get(self, order_id = None):
+        if order_id is None:
+            all_orders = self.transform_orders_to_dicts(Order.query.all())
+            return json.dumps(all_orders)
+        else:
+            pass
 
-@app.route('/api/v1/orders/all', methods=['POST'])
-def put_orders_api(json_data):
-    put_orders(json_data)
+    def post(self, json_data):
+        self.put_orders(json_data)
 
-def put_orders(json_data):
-    redis = get_redis_connection()
-    redis.rpush('batch', json_data)
+    def prepare_demo_data(self):
+        dummy_data = self.transform_orders_to_dicts(Order(*_) for _ in (
+            ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
+            ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
+            ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
+            ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
+            ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
+            ('Rosy Martini', 'Shaken not stirred')))
+        json_data = json.dumps(dummy_data)
+        self.put_orders(json_data)
+
+    def put_orders(self, json_data):
+        redis = get_redis_connection()
+        redis.rpush('batch', json_data)
+
+    def transform_orders_to_dicts(self, list_of_orders):
+        return [order.make_as_dict for order in list_of_orders]
+
+view_func = OrdersAPI.as_view('api_v1_orders')
+app.add_url_rule('/api/v1/orders/', defaults={'order_id': None},
+    view_func = view_func, methods=['GET', 'POST'])
+app.add_url_rule('/api/v1/orders/<int:order_id>',
+    view_func = view_func, methods=['GET'])
+
+
 
 @app.route('/', methods=['GET'])
 def index():
@@ -164,17 +186,6 @@ def consumer():
             for order in json.loads(orders):
                 Order(**order).save_order(db, commit = False)
             db.session.commit()
-
-def prepare_demo_data():
-    dummy_data = transform_orders_to_dicts(Order(*_) for _ in (
-        ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
-        ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
-        ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
-        ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
-        ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
-        ('Rosy Martini', 'Shaken not stirred')))
-    json_data = json.dumps(dummy_data)
-    put_orders(json_data)
 
 if __name__ == '__main__':
     db.create_all()
