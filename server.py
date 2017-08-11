@@ -106,15 +106,17 @@ class PageIndex(views.MethodView):
 app.add_url_rule('/', view_func=PageIndex.as_view('index'),
     methods=['GET'])
 
-
-@app.route('/orders', methods=['GET'])
-def list_orders():
-    all_orders = Order.query.all()
-    return render_template('/orders/index.html', orders = all_orders)
-
 @app.route('/live', methods=['GET'])
 def live_orders_list():
     return render_template('/orders/live-orders.html')
+
+class ListOrders(views.MethodView):
+    def get(self):
+        all_orders = Order.query.all()
+        return render_template('/orders/index.html', orders = all_orders)
+
+app.add_url_rule('/orders', view_func=ListOrders.as_view('list_orders'),
+    methods=['GET'])
 
 class Order(db.Model):
 
