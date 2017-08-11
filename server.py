@@ -112,30 +112,6 @@ def list_orders():
     all_orders = Order.query.all()
     return render_template('/orders/index.html', orders = all_orders)
 
-@app.route('/new', methods=['GET'])
-def new_order_form():
-    return render_template('orders/new-order.html')
-
-@app.route('/new', methods=['POST'])
-def receive_order():
-    message = request.form.get('message', '')
-    drink = {
-        'g&t': 'Gin & Tonic',
-        'espresso-martini': 'Espresso Martini',
-        'negroni': 'Negroni',
-        'beer': 'Beer',
-        'other': request.form.get('other')
-    }.get(request.form.get('drink'))
-    logger.info(str(drink) + ': ' + message)
-    if drink is None:
-        return (
-            'Something\'s wrong with your order, '
-            'perhaps you meant to select "Other".',
-            400)
-    order = Order(drink, message)
-    Receiver.make_a_note(order)
-    return ('drink', 204)
-
 @app.route('/live', methods=['GET'])
 def live_orders_list():
     return render_template('/orders/live-orders.html')
