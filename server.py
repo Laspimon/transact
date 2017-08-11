@@ -99,6 +99,12 @@ class PageNew(views.MethodView):
 app.add_url_rule('/new', view_func=PageNew.as_view('new'),
                      methods=['GET', 'POST'])
 
+class PageIndex(views.MethodView):
+    def get(self):
+        return redirect('/orders', code=302)
+
+app.add_url_rule('/', view_func=PageIndex.as_view('index'),
+    methods=['GET'])
 
 
 @app.route('/orders', methods=['GET'])
