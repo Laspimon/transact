@@ -73,8 +73,8 @@ def post_new_order():
             'perhaps you meant to select "Other".',
             400)
     order = Order(drink, message)
-    Receiver.broadcast(order)
-    Receiver.put_in_queue(order)
+    broadcast(order)
+    put_in_queue(order)
     return ('drink', 204)
 
 @app.route('/', methods=['GET'])
@@ -90,6 +90,20 @@ def get_orders_page():
 def get_live_orders():
     return render_template('/orders/live-orders.html')
 
+def broadcast(order):
+    socketio.emit(
+        'incomming',
+        {
+            'drink': order.drink,
+            'message': order.message
+        },
+        broadcast=True
+    )
+
+def put_in_queue(order):
+    json = order.make_as_json
+    redis = get_redis_connection()
+    redis.rpush('queue', json)
 
 class Order(db.Model):
 
@@ -135,30 +149,6 @@ class Order(db.Model):
             'drink': self.drink,
             'message': self.message,
             'order_received': self.order_received.ctime()}
-
-class Receiver():
-
-    @classmethod
-    def make_a_note(cls, order):
-        cls.broadcast(order)
-        cls.put_in_queue(order)
-
-    @classmethod
-    def broadcast(self, order):
-        socketio.emit(
-            'incomming',
-            {
-                'drink': order.drink,
-                'message': order.message
-            },
-            broadcast=True
-        )
-
-    @classmethod
-    def put_in_queue(self, order):
-        json = order.make_as_json
-        redis = get_redis_connection()
-        redis.rpush('queue', json)
 
 def consumer():
     redis = get_redis_connection(decode_responses = True)

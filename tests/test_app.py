@@ -3,7 +3,7 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, db, socketio, Order, Receiver
+from server import app, db, socketio, Order, broadcast
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
@@ -75,14 +75,14 @@ class ServerTestCase(unittest.TestCase):
 
     def test_live_orders_list_contains_Orders_header(self):
         with app.test_request_context():
-            index = url_for('live_orders_list')
+            index = url_for('get_live_orders')
         res = self.app_client.get(index)
         self.assertEqual(res.status_code, 200)
         assert b'<h1>Orders:</h1>' in res.data
 
     def test_app_broadcasts_orders(self):
         order = Order('Gin & Tonic', 'Make it strong.')
-        Receiver.broadcast(order)
+        broadcast(order)
         received = self.socketio_client.get_received()
         data = received[0]
         name = data.get('name')
