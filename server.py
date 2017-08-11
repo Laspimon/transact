@@ -185,24 +185,28 @@ class Order(db.Model):
             'message': self.message,
             'order_received': self.order_received.ctime()}
 
+class Receiver():
 
-    def make_a_note(self):
-        self.broadcast()
-        self.put_in_queue()
+    @classmethod
+    def make_a_note(cls, order):
+        cls.broadcast(order)
+        cls.put_in_queue(order)
 
-    def broadcast(self):
+    @classmethod
+    def broadcast(self, order):
         socketio.emit(
             'incomming',
             {
-                'drink': self.drink,
-                'message': self.message
+                'drink': order.drink,
+                'message': order.message
             },
             broadcast=True
         )
 
-    def put_in_queue(self):
-        json = self.make_as_json
-        if self.message == 'do nothing': return
+    @classmethod
+    def put_in_queue(self, order):
+        json = order.make_as_json
+        if order.message == 'do nothing': return
         redis = get_redis_connection()
         redis.rpush('queue', json)
 
