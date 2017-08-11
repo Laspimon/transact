@@ -1,6 +1,7 @@
 import json
 import logging
 import sys
+import os
 
 from datetime import datetime
 
@@ -27,6 +28,8 @@ logger.addHandler(file_handler)
 
 app = Flask(__name__)
 
+if not os.path.exists('data'):
+    os.makedirs('data')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/transact_data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
