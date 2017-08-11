@@ -132,7 +132,8 @@ def receive_order():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
-    Order(drink, message).make_a_note()
+    order = Order(drink, message)
+    Receiver.make_a_note(order)
     return ('drink', 204)
 
 @app.route('/live', methods=['GET'])
