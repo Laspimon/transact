@@ -82,8 +82,8 @@ def post_new_order():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
+    broadcast(drink, message)
     order = Order(drink, message)
-    broadcast(order)
     json_data = order.make_as_json
     redis = get_redis_connection()
     handler = CreateOrder(redis)
@@ -103,12 +103,12 @@ def get_orders_page():
 def get_live_orders():
     return render_template('/orders/live-orders.html')
 
-def broadcast(order):
+def broadcast(drink, message):
     socketio.emit(
         'incomming',
         {
-            'drink': order.drink,
-            'message': order.message
+            'drink': drink,
+            'message': message
         },
         broadcast=True
     )

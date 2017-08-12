@@ -90,8 +90,7 @@ class ServerTestCase(unittest.TestCase):
         assert b'<h1>Orders:</h1>' in res.data
 
     def test_app_broadcasts_orders(self):
-        order = Order('Gin & Tonic', 'Make it strong.')
-        broadcast(order)
+        broadcast('Gin & Tonic', 'Make it strong.')
         received = self.socketio_client.get_received()
         data = received[0]
         name = data.get('name')
