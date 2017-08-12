@@ -115,7 +115,7 @@ def broadcast(drink, message):
 
 class Order(db.Model):
 
-    pid = db.Column(db.Integer, primary_key = True)
+    order_id = db.Column(db.Integer, primary_key = True)
     drink = db.Column(db.String(64), nullable = False)
     message = db.Column(db.String(256), nullable = False)
     order_received = db.Column(db.DateTime)
