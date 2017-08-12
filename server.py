@@ -134,7 +134,7 @@ class Order(db.Model):
         self.drink = drink
         self.message = message
 
-    def save_order(self, database, commit=False):
+    def save_order(self, database, commit=True):
         database.session.add(self)
         if commit: database.session.commit()
 
