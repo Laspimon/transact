@@ -3,13 +3,13 @@ import logging
 import sys
 import os
 
-from datetime import datetime
-
 from flask import Flask, redirect, render_template, request, views
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
 from redis import Redis
+
+from app.members import db, Order
 
 def get_redis_connection(decode_responses = False, attach_redis_connection = None):
     if attach_redis_connection is not None:
@@ -17,8 +17,6 @@ def get_redis_connection(decode_responses = False, attach_redis_connection = Non
     if 'docker' in sys.argv:
         return Redis(host='redis', decode_responses = decode_responses)
     return Redis(decode_responses = decode_responses)
-
-ctime_format = "%a %b %d %H:%M:%S %Y"
 
 logger = logging.getLogger('input_log')
 logger.setLevel(logging.INFO)
@@ -36,7 +34,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/transact_data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 socketio = SocketIO(app)
-db = SQLAlchemy(app)
+db.init_app(app)
+db.app = app
 
 class CreateOrder():
     def __init__(self, redis):
@@ -118,50 +117,6 @@ def broadcast(drink, message):
         broadcast=True
     )
 
-class Order(db.Model):
-
-    order_id = db.Column(db.Integer, primary_key = True)
-    drink = db.Column(db.String(64), nullable = False)
-    message = db.Column(db.String(256), nullable = False)
-    order_received = db.Column(db.DateTime)
-
-    def __init__(self, drink, message, order_received = None):
-        if order_received is None:
-            order_received = datetime.now()
-        if not isinstance(order_received, datetime):
-            try:
-                order_received = datetime.strptime(order_received, ctime_format)
-            except ValueError:
-                raise ValueError('order_received must be datetime instance')
-        if False in (isinstance(drink, str), isinstance(message, str)):
-            raise ValueError('drink and message must be strings')
-        self.order_received = order_received
-        self.drink = drink
-        self.message = message
-
-    def save_order(self, database, commit=True):
-        database.session.add(self)
-        if commit: database.session.commit()
-
-    def __repr__(self):
-        return 'Order("{}", "{}", "{}")'.format(
-            self.drink, self.message, self.order_received)
-
-    @property
-    def nicely_formatted(self):
-        return '{}, {} (order received: {})'.format(
-            self.drink, self.message, self.order_received.ctime())
-
-    @property
-    def make_as_json(self):
-        return json.dumps([self.make_as_dict])
-
-    @property
-    def make_as_dict(self):
-        return {
-            'drink': self.drink,
-            'message': self.message,
-            'order_received': self.order_received.ctime()}
 
 def consumer(redis, database, model_class, queues = None):
     if queues is None:
