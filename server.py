@@ -163,13 +163,14 @@ class Order(db.Model):
             'message': self.message,
             'order_received': self.order_received.ctime()}
 
-def consumer(redis, database, model_class):
+def consumer(redis, database, model_class, queues = None):
+    if queues is None:
+        queues = ['queue']
     while True:
-        source, orders = redis.blpop(['queue'])
-        if source == 'queue':
-            for order in json.loads(orders):
-                model_class(**order).save_order(db, commit = False)
-            database.session.commit()
+        source, orders = redis.blpop(queues)
+        for order in json.loads(orders):
+            model_class(**order).save_order(db, commit = False)
+        database.session.commit()
 
 def prepare_demo_data():
     dummy_orders = [Order(*_) for _ in (
