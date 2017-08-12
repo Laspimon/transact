@@ -60,11 +60,6 @@ def post_order(json_data):
     handler = CreateOrder(redis)
     handler.perform(json_data)
 
-# Page: New order form
-@app.route('/new', methods=['GET'])
-def get_new_order():
-    return render_template('orders/new-order.html')
-
 @app.route('/new', methods=['POST'])
 def receive_new_order():
     message = request.form.get('message', '')
@@ -86,6 +81,9 @@ def receive_new_order():
     post_order(json_data)
     return ('drink', 204)
 
+## Pages renderers
+
+# Index page
 @app.route('/', methods=['GET'])
 def get_index_page():
     return redirect('/orders', code=302)
@@ -95,9 +93,15 @@ def get_orders_page():
     all_orders = Order.query.all()
     return render_template('/orders/index.html', orders = all_orders)
 
+# Live orders page
 @app.route('/live', methods=['GET'])
 def get_live_orders():
     return render_template('/orders/live-orders.html')
+
+# Page: New order form
+@app.route('/new', methods=['GET'])
+def get_new_order():
+    return render_template('orders/new-order.html')
 
 def broadcast(drink, message):
     socketio.emit(
