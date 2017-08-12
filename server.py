@@ -163,13 +163,13 @@ class Order(db.Model):
             'message': self.message,
             'order_received': self.order_received.ctime()}
 
-def consumer(redis):
+def consumer(redis, database):
     while True:
         source, orders = redis.blpop(['queue'])
         if source == 'queue':
             for order in json.loads(orders):
                 Order(**order).save_order(db, commit = False)
-            db.session.commit()
+            database.session.commit()
 
 def prepare_demo_data():
     dummy_orders = [Order(*_) for _ in (
@@ -192,7 +192,7 @@ if __name__ == '__main__':
                 json_data = prepare_demo_data()
                 post_order(json_data)
             redis = get_redis_connection(decode_responses = True)
-            consumer(redis)
+            consumer(redis, db)
         else:
             socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
