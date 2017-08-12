@@ -182,7 +182,7 @@ def prepare_demo_data():
         ('Rosy Martini', 'Shaken not stirred'))]
     dummy_data = [order.make_as_dict for order in dummy_orders]
     json_data = json.dumps(dummy_data)
-    post_order(json_data)
+    return json_data
 
 if __name__ == '__main__':
     db.create_all()
@@ -190,7 +190,8 @@ if __name__ == '__main__':
         if 'dbwriter' in sys.argv:
             if len(Order.query.all()) == 0:
                 print('Preparing demo data...')
-                prepare_demo_data()
+                json_data = prepare_demo_data()
+                post_order(json_data)
             consumer()
         else:
             socketio.run(app, host='0.0.0.0')
