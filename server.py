@@ -11,7 +11,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 from redis import Redis
 
-def get_redis_connection(decode_responses = False):
+def get_redis_connection(decode_responses = False, attach_redis_connection = None):
+    if attach_redis_connection is not None:
+        return attach_redis_connection
     if 'docker' in sys.argv:
         return Redis(host='redis', decode_responses = decode_responses)
     return Redis(decode_responses = decode_responses)
@@ -36,6 +38,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 socketio = SocketIO(app)
 db = SQLAlchemy(app)
 
+class CreateOrder():
+    def __init__(self, redis):
+        self.redis = redis
+
+    def perform(self, json_data):
+        self.redis.rpush('batch', json_data)
+
 # Orders API
 @app.route('/api/v1/orders/')
 def get_orders(order_id = None, methods=['GET']):
@@ -50,7 +59,8 @@ def get_order(order_id = None):
 @app.route('/api/v1/orders/', methods=['POST'])
 def post_order(json_data):
     redis = get_redis_connection()
-    redis.rpush('batch', json_data)
+    handler = CreateOrder(redis)
+    handler.perform(json_data)
 
 # Page: New order form
 @app.route('/new', methods=['GET'])
@@ -74,7 +84,10 @@ def post_new_order():
             400)
     order = Order(drink, message)
     broadcast(order)
-    put_in_queue(order)
+    json_data = order.make_as_json
+    redis = get_redis_connection()
+    handler = CreateOrder(redis)
+    handler.perform(json_data)
     return ('drink', 204)
 
 @app.route('/', methods=['GET'])
@@ -99,11 +112,6 @@ def broadcast(order):
         },
         broadcast=True
     )
-
-def put_in_queue(order):
-    json = order.make_as_json
-    redis = get_redis_connection()
-    redis.rpush('queue', json)
 
 class Order(db.Model):
 
