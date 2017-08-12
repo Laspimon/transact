@@ -46,11 +46,11 @@ class CreateOrder():
         self.redis.rpush('batch', json_data)
 
 # Orders API
-@app.route('/api/v1/orders/')
-def get_orders(order_id = None, methods=['GET']):
+@app.route('/api/v1/orders/', methods=['GET'])
+def get_orders():
     all_orders = Order.query.all()
     as_dicts = [order.make_as_dict for order in all_orders]
-    return json.dumps(all_orders)
+    return json.dumps(as_dicts)
 
 @app.route('/api/v1/orders/<order_id>', defaults={'order_id': None}, methods=['GET'])
 def get_order(order_id = None):
