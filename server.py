@@ -10,18 +10,19 @@ from app.members import db, Order, prepare_demo_data
 from app.helpers import get_redis_connection, broadcast, simple_logger
 from app.consumer import consumer
 
+def config_app():
+    if not os.path.exists('data'):
+        os.makedirs('data')
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/transact_data.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    db.init_app(app)
+    db.app = app
+    return app
 
-
-app = Flask(__name__)
-
-if not os.path.exists('data'):
-    os.makedirs('data')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data/transact_data.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app = config_app()
 
 socketio = SocketIO(app)
-db.init_app(app)
-db.app = app
 
 class CreateOrder():
     def __init__(self, redis):
