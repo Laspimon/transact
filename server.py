@@ -7,7 +7,7 @@ from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
 from app.members import db, Order, prepare_demo_data
-from app.helpers import get_redis_connection, broadcast, simple_logger
+from app.helpers import get_redis_connection, broadcast, simple_logger, CreateOrder
 from app.consumer import consumer
 
 def config_app():
@@ -23,13 +23,6 @@ def config_app():
 app = config_app()
 
 socketio = SocketIO(app)
-
-class CreateOrder():
-    def __init__(self, redis):
-        self.redis = redis
-
-    def perform(self, json_data):
-        self.redis.rpush('queue', json_data)
 
 # Orders API
 @app.route('/api/v1/orders/', methods=['GET'])

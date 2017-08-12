@@ -12,6 +12,13 @@ def broadcast(socketio, drink, message):
         broadcast=True
     )
 
+class CreateOrder():
+    def __init__(self, redis):
+        self.redis = redis
+
+    def perform(self, json_data):
+        self.redis.rpush('queue', json_data)
+
 def get_redis_connection(decode_responses = False, attach_redis_connection = None):
     if attach_redis_connection is not None:
         return attach_redis_connection
