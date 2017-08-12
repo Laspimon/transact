@@ -75,7 +75,7 @@ def get_new_order():
     return render_template('orders/new-order.html')
 
 @app.route('/new', methods=['POST'])
-def post_new_order():
+def receive_new_order():
     message = request.form.get('message', '')
     drink = {
         'g&t': 'Gin & Tonic',
@@ -92,9 +92,7 @@ def post_new_order():
     broadcast(drink, message)
     order = Order(drink, message)
     json_data = order.make_as_json
-    redis = get_redis_connection()
-    handler = CreateOrder(redis)
-    handler.perform(json_data)
+    post_order(json_data)
     return ('drink', 204)
 
 @app.route('/', methods=['GET'])
