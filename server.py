@@ -190,9 +190,11 @@ if __name__ == '__main__':
     db.create_all()
     try:
         if 'dbwriter' in sys.argv:
+            if len(Order.query.all()) == 0:
+                print('Preparing demo data...')
+                prepare_demo_data()
             consumer()
         else:
-            prepare_demo_data()
             socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
         logger.info('Server shut down by user')
