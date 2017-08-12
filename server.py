@@ -43,7 +43,7 @@ class CreateOrder():
         self.redis = redis
 
     def perform(self, json_data):
-        self.redis.rpush('batch', json_data)
+        self.redis.rpush('queue', json_data)
 
 # Orders API
 @app.route('/api/v1/orders/', methods=['GET'])
@@ -161,11 +161,8 @@ class Order(db.Model):
 def consumer():
     redis = get_redis_connection(decode_responses = True)
     while True:
-        source, orders = redis.blpop(['queue', 'batch'])
+        source, orders = redis.blpop(['queue'])
         if source == 'queue':
-            order = json.loads(orders)
-            Order(**order).save_order(db)
-        if source == 'batch':
             for order in json.loads(orders):
                 Order(**order).save_order(db, commit = False)
             db.session.commit()
