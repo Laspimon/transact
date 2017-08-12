@@ -1,5 +1,4 @@
 import json
-import logging
 import sys
 import os
 
@@ -10,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 
 from app.members import db, Order
+from app.helpers import simple_logger
 
 def get_redis_connection(decode_responses = False, attach_redis_connection = None):
     if attach_redis_connection is not None:
@@ -17,14 +17,6 @@ def get_redis_connection(decode_responses = False, attach_redis_connection = Non
     if 'docker' in sys.argv:
         return Redis(host='redis', decode_responses = decode_responses)
     return Redis(decode_responses = decode_responses)
-
-logger = logging.getLogger('input_log')
-logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler('transact.log')
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
 
 app = Flask(__name__)
 
@@ -141,6 +133,7 @@ def prepare_demo_data():
 
 if __name__ == '__main__':
     db.create_all()
+    logger = simple_logger()
     try:
         if 'dbwriter' in sys.argv:
             if len(Order.query.all()) == 0:
