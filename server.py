@@ -6,17 +6,11 @@ from flask import Flask, redirect, render_template, request, views
 from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
-from redis import Redis
+from app.members import db, Order, prepare_demo_data
+from app.helpers import get_redis_connection, broadcast, simple_logger
+from app.consumer import consumer
 
-from app.members import db, Order
-from app.helpers import simple_logger
 
-def get_redis_connection(decode_responses = False, attach_redis_connection = None):
-    if attach_redis_connection is not None:
-        return attach_redis_connection
-    if 'docker' in sys.argv:
-        return Redis(host='redis', decode_responses = decode_responses)
-    return Redis(decode_responses = decode_responses)
 
 app = Flask(__name__)
 
@@ -75,7 +69,7 @@ def receive_new_order():
             'Something\'s wrong with your order, '
             'perhaps you meant to select "Other".',
             400)
-    broadcast(drink, message)
+    broadcast(socketio, drink, message)
     order = Order(drink, message)
     json_data = order.make_as_json
     post_order(json_data)
@@ -103,37 +97,6 @@ def get_live_orders():
 def get_new_order():
     return render_template('orders/new-order.html')
 
-def broadcast(drink, message):
-    socketio.emit(
-        'incomming',
-        {
-            'drink': drink,
-            'message': message
-        },
-        broadcast=True
-    )
-
-
-def consumer(redis, database, model_class, queues = None):
-    if queues is None:
-        queues = ['queue']
-    while True:
-        source, orders = redis.blpop(queues)
-        for order in json.loads(orders):
-            model_class(**order).save_order(db, commit = False)
-        database.session.commit()
-
-def prepare_demo_data():
-    dummy_orders = [Order(*_) for _ in (
-        ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
-        ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
-        ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
-        ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
-        ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
-        ('Rosy Martini', 'Shaken not stirred'))]
-    dummy_data = [order.make_as_dict for order in dummy_orders]
-    json_data = json.dumps(dummy_data)
-    return json_data
 
 if __name__ == '__main__':
     db.create_all()

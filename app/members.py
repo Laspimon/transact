@@ -3,6 +3,7 @@ import json
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
+
 db = SQLAlchemy()
 
 # Database models:
@@ -53,3 +54,15 @@ class Order(db.Model):
             'drink': self.drink,
             'message': self.message,
             'order_received': self.order_received.ctime()}
+
+def prepare_demo_data():
+    dummy_orders = [Order(*_) for _ in (
+        ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
+        ('Espresso Martini', 'Hurry up, I\'m thirsty!'),
+        ('Strawberry Daiquiri', 'Last time I had this was at a Bieber concert'),
+        ('Magic Potion', 'Ya wouldn\'t happen to have any tiramisu, would ya?'),
+        ('Injection attack', '<script> a = function(){ return "DROP TABLE Users or whatever"}</script>'),
+        ('Rosy Martini', 'Shaken not stirred'))]
+    dummy_data = [order.make_as_dict for order in dummy_orders]
+    json_data = json.dumps(dummy_data)
+    return json_data
