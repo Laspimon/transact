@@ -52,9 +52,16 @@ def get_orders():
     as_dicts = [order.make_as_dict for order in all_orders]
     return json.dumps(as_dicts)
 
-@app.route('/api/v1/orders/<order_id>', defaults={'order_id': None}, methods=['GET'])
-def get_order(order_id = None):
-    raise NotImplementedError
+@app.route('/api/v1/orders/<order_id>', methods=['GET'])
+def get_order(order_id):
+    try:
+        order_id = int(order_id)
+    except ValueError:
+        return 'Error: order_id must be a number'
+    one_order = Order.query.filter(Order.order_id == order_id).first()
+    if one_order is None:
+        return 'Error: No such record'
+    return one_order.make_as_json
 
 @app.route('/api/v1/orders/', methods=['POST'])
 def post_order(json_data):
