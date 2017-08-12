@@ -149,7 +149,7 @@ class Order(db.Model):
 
     @property
     def make_as_json(self):
-        return json.dumps(self.make_as_dict)
+        return json.dumps([self.make_as_dict])
 
     @property
     def make_as_dict(self):
