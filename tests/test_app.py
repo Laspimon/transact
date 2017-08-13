@@ -3,7 +3,7 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, db, socketio, Order, broadcast
+from server import app, db, Order, broadcast
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
@@ -23,7 +23,7 @@ class ServerTestCase(unittest.TestCase):
         self.db.create_all()
 
         self.app_client = app.test_client()
-        self.socketio_client = socketio.test_client(app)
+        self.socketio_client = app.socketio.test_client(app)
 
     def tearDown(self):
         self.db.session.remove()
@@ -91,7 +91,7 @@ class ServerTestCase(unittest.TestCase):
         assert b'<h1>Orders:</h1>' in res.data
 
     def test_app_broadcasts_orders(self):
-        broadcast(socketio, 'Gin & Tonic', 'Make it strong.')
+        broadcast(app.socketio, 'Gin & Tonic', 'Make it strong.')
         received = self.socketio_client.get_received()
         data = received[0]
         name = data.get('name')

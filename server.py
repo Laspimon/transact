@@ -18,10 +18,10 @@ def config_app():
     db.init_app(app)
     db.app = app
     app.redis = get_redis_connection(decode_responses = True)
+    app.socketio = SocketIO(app)
     return app
 
 app = config_app()
-socketio = SocketIO(app)
 
 # Orders API
 @app.route('/api/v1/orders/', methods=['GET'])
@@ -61,7 +61,7 @@ def receive_new_order():
             'Unable to process Entry: Something\'s wrong with '
             'your order, perhaps you meant to select "Other".',
             422)
-    broadcast(socketio, drink, message)
+    broadcast(app.socketio, drink, message)
     order = Order(drink, message)
     json_data = order.make_as_json
     post_order(json_data)
@@ -100,6 +100,6 @@ if __name__ == '__main__':
                 post_order(json_data)
             consumer(app.redis, db, Order)
         else:
-            socketio.run(app, host='0.0.0.0')
+            app.socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:
         logger.info('Server shut down by user')
