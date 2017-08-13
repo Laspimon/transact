@@ -17,6 +17,7 @@ def config_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     db.app = app
+    app.redis = get_redis_connection(decode_responses = True)
     return app
 
 app = config_app()
@@ -42,8 +43,7 @@ def get_order(order_id):
 
 @app.route('/api/v1/orders/', methods=['POST'])
 def post_order(json_data):
-    redis = get_redis_connection()
-    handler = CreateOrder(redis)
+    handler = CreateOrder(app.redis)
     handler.perform(json_data)
 
 @app.route('/new', methods=['POST'])
@@ -98,8 +98,7 @@ if __name__ == '__main__':
                 print('Preparing demo data...')
                 json_data = prepare_demo_data()
                 post_order(json_data)
-            redis = get_redis_connection(decode_responses = True)
-            consumer(redis, db, Order)
+            consumer(app.redis, db, Order)
         else:
             socketio.run(app, host='0.0.0.0')
     except KeyboardInterrupt:

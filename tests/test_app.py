@@ -3,14 +3,16 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, db, socketio, Order, broadcast, get_redis_connection
+from server import app, db, socketio, Order, broadcast
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
 
 class RedisStub():
+
     def rpush(*args):
         pass
+
     def blpop(*args):
         pass
 
@@ -19,9 +21,6 @@ class ServerTestCase(unittest.TestCase):
     def setUp(self):
         self.db = db
         self.db.create_all()
-
-        redis_stub = RedisStub()
-        self.redis = get_redis_connection(attach_redis_connection = redis_stub)
 
         self.app_client = app.test_client()
         self.socketio_client = socketio.test_client(app)
@@ -67,9 +66,9 @@ class ServerTestCase(unittest.TestCase):
         assert b'Beer' in res.data
         assert b'Other' in res.data
 
-    @unittest.skip("Skipping: Test depends on Redis service running.")
     def test_new_returns_201_on_success(self):
         data = {'drink': 'g&t', 'message': 'do nothing'}
+        app.redis = RedisStub
         with app.test_request_context():
             new = url_for('receive_new_order')
         res = self.app_client.post(new, data=data)
