@@ -1,11 +1,12 @@
 import json
+import os
 import unittest
 
 from flask import url_for
 from urllib.parse import urlparse
 
 from app.consumer import consume
-from app.helpers import broadcast, get_redis_connection
+from app.helpers import broadcast, get_redis_connection, simple_logger
 from app.members import Order
 from server import app
 
@@ -220,6 +221,17 @@ class ServerTestCase(unittest.TestCase):
         redis = get_redis_connection()
         redis_type = str(type(redis))
         self.assertEqual(redis_type, "<class 'redis.client.Redis'>")
+
+    def test_simple_logger_logs_stuff(self):
+        if not os.path.exists('TMP'):
+            os.makedirs('TMP')
+        logger = simple_logger('TMP/transact.log', 'input_log')
+        logger.info('Test')
+        with open('TMP/transact.log') as log:
+            logged_data = log.read()
+        os.remove('TMP/transact.log')
+        os.removedirs('TMP')
+        self.assertEqual( logged_data[-24:], 'input_log - INFO - Test\n')
 
 if __name__ == '__main__':
     unittest.main()

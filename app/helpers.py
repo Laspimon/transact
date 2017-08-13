@@ -26,10 +26,10 @@ def get_redis_connection(decode_responses = False, attach_redis_connection = Non
         return Redis(host='redis', decode_responses = decode_responses)
     return Redis(decode_responses = decode_responses)
 
-def simple_logger():
-    logger = logging.getLogger('input_log')
+def simple_logger(logfile, logname):
+    logger = logging.getLogger(logname)
     logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler('transact.log')
+    file_handler = logging.FileHandler(logfile)
     formatter = logging.Formatter(
         '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     file_handler.setFormatter(formatter)

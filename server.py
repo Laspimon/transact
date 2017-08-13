@@ -92,7 +92,7 @@ def get_new_order():
 
 if __name__ == '__main__':
     db.create_all()
-    logger = simple_logger()
+    logger = simple_logger('transact.log', 'input_log')
     try:
         if 'dbwriter' in sys.argv:
             if len(Order.query.all()) == 0:
