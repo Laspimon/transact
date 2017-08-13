@@ -4,7 +4,6 @@ import os
 
 from flask import Flask, redirect, render_template, request, views
 from flask_socketio import SocketIO
-from flask_sqlalchemy import SQLAlchemy
 
 from app.members import db, Order, prepare_demo_data
 from app.helpers import get_redis_connection, broadcast, simple_logger, CreateOrder
