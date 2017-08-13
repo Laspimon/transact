@@ -153,5 +153,31 @@ class ServerTestCase(unittest.TestCase):
         self.assertEqual(data_0['drink'], 'Banana Milkshake')
         assert 'newsletter' in data_0['message']
 
+    def test_get_order_returns_404(self):
+        with app.test_request_context():
+            get_orders = url_for('get_order', order_id=1)
+        res = self.app_client.get(get_orders)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(res.data, b'No such record')
+
+    def test_get_order_returns_422(self):
+        with app.test_request_context():
+            get_orders = url_for('get_order', order_id='Mango Juice')
+        res = self.app_client.get(get_orders)
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(res.data, b'Error: order_id must be a number')
+
+    def test_get_order_returns_200(self):
+        Order(
+            'Chiquita Sunrise',
+            'I\m not entirely sure if this is a man\'s drink').save_order(self.db)
+        with app.test_request_context():
+            get_orders = url_for('get_order', order_id=1)
+        res = self.app_client.get(get_orders)
+        self.assertEqual(res.status_code, 200)
+        data_0 = json.loads(res.data)[0]
+        self.assertEqual(data_0['drink'], 'Chiquita Sunrise')
+        assert 'entirely sure' in data_0['message']
+
 if __name__ == '__main__':
     unittest.main()

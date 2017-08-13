@@ -36,10 +36,10 @@ def get_order(order_id):
     try:
         order_id = int(order_id)
     except ValueError:
-        return 'Error: order_id must be a number'
+        return ('Error: order_id must be a number', 422)
     one_order = Order.query.filter(Order.order_id == order_id).first()
     if one_order is None:
-        return 'Error: No such record'
+        return ('No such record', 404)
     return one_order.make_as_json
 
 @app.route('/api/v1/orders/', methods=['POST'])
