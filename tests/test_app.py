@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from app.consumer import consume
 from app.helpers import broadcast, get_redis_connection, simple_logger
-from app.members import Order
+from app.members import Order, prepare_demo_data
 from server import app
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
@@ -232,6 +232,16 @@ class ServerTestCase(unittest.TestCase):
         os.remove('TMP/transact.log')
         os.removedirs('TMP')
         self.assertEqual( logged_data[-24:], 'input_log - INFO - Test\n')
+
+    def test_prepare_demo_data_returns_data(self):
+        data = json.loads(prepare_demo_data())
+        daiquiri = data[2]
+        drink = daiquiri.get('drink')
+        message = daiquiri.get('message')
+        self.assertEqual(drink, 'Strawberry Daiquiri')
+        self.assertEqual(
+            message,
+            'Last time I had this was at a Bieber concert')
 
 if __name__ == '__main__':
     unittest.main()
