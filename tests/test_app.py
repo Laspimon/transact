@@ -40,27 +40,27 @@ class ServerTestCase(unittest.TestCase):
 
     def test_list_orders_contains_header(self):
         with app.test_request_context():
-            index = url_for('get_orders_page')
-        res = self.app_client.get(index)
+            orders_page = url_for('get_orders_page')
+        res = self.app_client.get(orders_page)
         self.assertEqual(res.status_code, 200)
         assert b'<h1>All Orders Ever:</h1>' in res.data
 
 
     def test_list_orders_gets_updated(self):
         with app.test_request_context():
-            index = url_for('get_orders_page')
-        res = self.app_client.get(index)
+            orders_page = url_for('get_orders_page')
+        res = self.app_client.get(orders_page)
         self.assertEqual(res.status_code, 200)
         assert b'<li >Gin, Now (order received:' not in res.data
         Order('Gin', 'Now').save_order(self.db)
-        res = self.app_client.get(index)
+        res = self.app_client.get(orders_page)
         self.assertEqual(res.status_code, 200)
         assert b'<li >Gin, Now (order received:' in res.data
 
     def test_new_order_form_renders_choices(self):
         with app.test_request_context():
-            index = url_for('get_new_order')
-        res = self.app_client.get(index)
+            new_order_page = url_for('get_new_order')
+        res = self.app_client.get(new_order_page)
         self.assertEqual(res.status_code, 200)
         assert b'Gin & Tonic' in res.data
         assert b'Espresso Martini' in res.data
@@ -79,16 +79,16 @@ class ServerTestCase(unittest.TestCase):
 
     def test_new_returns_400_on_no_drink_selection(self):
         with app.test_request_context():
-            response_data = self.app_client.post('/new', data={'drink': ''})
+            new = self.app_client.post('/new', data={'drink': ''})
         self.assertEqual(
-            response_data.get_data(),
+            new.get_data(),
             b'Unable to process Entry: Something\'s wrong with your order, perhaps you meant to select "Other".',)
-        self.assertEqual(response_data.status_code, 422)
+        self.assertEqual(new.status_code, 422)
 
     def test_live_orders_list_contains_Orders_header(self):
         with app.test_request_context():
-            index = url_for('get_live_orders')
-        res = self.app_client.get(index)
+            live_page = url_for('get_live_orders')
+        res = self.app_client.get(live_page)
         self.assertEqual(res.status_code, 200)
         assert b'<h1>Orders:</h1>' in res.data
 
