@@ -67,11 +67,11 @@ class ServerTestCase(unittest.TestCase):
         assert b'Beer' in res.data
         assert b'Other' in res.data
 
-    def test_new_returns_204_on_success(self):
+    def test_new_returns_201_on_success(self):
         data = {'drink': 'g&t', 'message': 'do nothing'}
         with app.test_request_context():
             res = self.app_client.post('/new', data=data)
-        self.assertEqual(res.status_code, 204)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(res.data, b'')
 
     def test_new_returns_400_on_no_drink_selection(self):
@@ -79,8 +79,8 @@ class ServerTestCase(unittest.TestCase):
             response_data = self.app_client.post('/new', data={'drink': ''})
         self.assertEqual(
             response_data.get_data(),
-            b'Something\'s wrong with your order, perhaps you meant to select "Other".',)
-        self.assertEqual(response_data.status_code, 400)
+            b'Unable to process Entry: Something\'s wrong with your order, perhaps you meant to select "Other".',)
+        self.assertEqual(response_data.status_code, 422)
 
     def test_live_orders_list_contains_Orders_header(self):
         with app.test_request_context():
