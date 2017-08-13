@@ -3,7 +3,7 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, db, Order, broadcast
+from server import app, Order, broadcast
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
@@ -19,7 +19,7 @@ class RedisStub():
 class ServerTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.db = db
+        self.db = app.db
         self.db.create_all()
 
         self.app_client = app.test_client()

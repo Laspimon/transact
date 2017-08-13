@@ -17,6 +17,7 @@ def config_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
     db.app = app
+    app.db = db
     app.redis = get_redis_connection(decode_responses = True)
     app.socketio = SocketIO(app)
     return app
