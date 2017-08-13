@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from flask import url_for
@@ -131,6 +132,26 @@ class ServerTestCase(unittest.TestCase):
         json = Order('Green Tea Mambo', 'You only live once').make_as_json
         assert '{"drink": "Green Tea Mambo",' in json
         assert 'Mambo", "message": "You only live once"' in json
+
+    def test_get_orders_returns_list(self):
+        with app.test_request_context():
+            get_orders = url_for('get_orders')
+        res = self.app_client.get(get_orders)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(json.loads(res.data), [])
+
+    def test_get_orders_returns_data_list(self):
+        Order(
+            'Banana Milkshake',
+            'No, I would not like to buy a subscription '
+            'to your newsletter, thank you very much').save_order(self.db)
+        with app.test_request_context():
+            get_orders = url_for('get_orders')
+        res = self.app_client.get(get_orders)
+        self.assertEqual(res.status_code, 200)
+        data_0 = json.loads(res.data)[0]
+        self.assertEqual(data_0['drink'], 'Banana Milkshake')
+        assert 'newsletter' in data_0['message']
 
 if __name__ == '__main__':
     unittest.main()
