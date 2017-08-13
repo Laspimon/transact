@@ -3,7 +3,9 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
-from server import app, Order, broadcast
+from app.helpers import broadcast
+from app.members import Order
+from server import app
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True

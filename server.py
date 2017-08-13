@@ -2,12 +2,12 @@ import json
 import sys
 import os
 
-from flask import Flask, redirect, render_template, request, views
+from flask import Flask, redirect, render_template, request
 from flask_socketio import SocketIO
 
-from app.members import db, Order, prepare_demo_data
-from app.helpers import get_redis_connection, broadcast, simple_logger, CreateOrder
 from app.consumer import consumer
+from app.helpers import get_redis_connection, broadcast, simple_logger, CreateOrder
+from app.members import db, Order, prepare_demo_data
 
 def config_app():
     if not os.path.exists('data'):
