@@ -5,7 +5,7 @@ from flask import url_for
 from urllib.parse import urlparse
 
 from app.consumer import consume
-from app.helpers import broadcast
+from app.helpers import broadcast, get_redis_connection
 from app.members import Order
 from server import app
 
@@ -211,6 +211,15 @@ class ServerTestCase(unittest.TestCase):
         consume(RedisStub(), self.db, Order, queues = ['queue'])
         self.assertEqual(Order.query.first().drink, 'Jack Daniels')
         self.assertEqual(Order.query.first().message, 'Where is my order, Louise?')
+
+    def test_get_redis_connection_returns_passed_connection(self):
+        redis = get_redis_connection(attach_redis_connection = 'Fake Connection')
+        self.assertEqual(redis, 'Fake Connection')
+
+    def test_get_redis_connection_returns_redis_client(self):
+        redis = get_redis_connection()
+        redis_type = str(type(redis))
+        self.assertEqual(redis_type, "<class 'redis.client.Redis'>")
 
 if __name__ == '__main__':
     unittest.main()
