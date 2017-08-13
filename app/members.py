@@ -1,3 +1,6 @@
+"""
+Defines the database models
+"""
 import json
 
 from datetime import datetime
@@ -6,9 +9,14 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# Database models:
-
 class Order(db.Model):
+    """ORM object for the orders.
+
+    Takes drink, message and optional time of order.
+    order_id is automatically assigned.
+    Running eval on the output of __repr__() initializes
+    a new copy of the original object.
+    """
 
     order_id = db.Column(db.Integer, primary_key = True)
     drink = db.Column(db.String(64), nullable = False)
@@ -56,6 +64,10 @@ class Order(db.Model):
             'order_received': self.order_received.ctime()}
 
 def prepare_demo_data():
+    """Prepare demo data and return it as json
+
+    Now it wont feel so lonely, when we launch the app.
+    """
     dummy_orders = [Order(*_) for _ in (
         ('Negroni', 'If you bring it here fast, I\'ll sing you a song.'),
         ('Espresso Martini', 'Hurry up, I\'m thirsty!'),

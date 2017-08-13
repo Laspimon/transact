@@ -1,3 +1,9 @@
+"""
+python -m unittest discover tests
+coverage run --source . tests/test_app.py
+coverage report
+coverage html
+"""
 import json
 import os
 import unittest
@@ -14,18 +20,22 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
 
 class RedisStub():
+    """Stub for immitating Redis instance"""
     queues = {}
 
     def __init__(self, decode_responses = False):
         self.decode_responses = decode_responses
 
     def rpush(self, queue, json_string):
+        """Right Push"""
         if not isinstance(self.queues.get(queue), list):
             self.queues[queue] = []
         self.queues.get(queue).append(json_string)
 
     def blpop(self, queues, timeout = 0):
-        """This is for testing; No reason to implement blocking behavior.
+        """Blocking Left Pop
+        
+        This is for testing; No reason to implement blocking behavior.
         """
         if isinstance(queues, str):
             queues = [queues]
@@ -41,8 +51,10 @@ class RedisStub():
         # Returns None if empty
 
 class ServerTestCase(unittest.TestCase):
+    """Every test in the world"""
 
     def setUp(self):
+        """Setup clean database and init test clients"""
         self.db = app.db
         self.db.create_all()
 
@@ -50,6 +62,7 @@ class ServerTestCase(unittest.TestCase):
         self.socketio_client = app.socketio.test_client(app)
 
     def tearDown(self):
+        """Clean database"""
         self.db.session.remove()
         self.db.drop_all()
 
@@ -138,7 +151,6 @@ class ServerTestCase(unittest.TestCase):
         self.assertRaises(ValueError, Order, 'Wine', 1)
         self.assertRaises(ValueError, Order, 'Whatever Liquor',
                           'Lots of it, Please', '2000-01-01')
-
 
     def test_empty_database_returns_empty_result(self):
         all_orders = Order.query.all()

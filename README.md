@@ -18,15 +18,22 @@ To run tests:
 python -m unittest discover tests
 ```
 
-To run the server, execute the following commands in separate terminal windows::
+For code coverage:
+```
+coverage run --source . tests/test_app.py
+coverage html
+coverage report
+```
+
+To run the server, run docker-compose:
+```
+docker-compose up --build
+```
+
+Alternatively, execute the following commands in separate terminal windows::
 ```
 python server.py
 python server.py dbwriter
-```
-
-Alternatively run docker-compose:
-```
-docker-compose up --build
 ```
 
 User interface is implemented at the following adresses:
