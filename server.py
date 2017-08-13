@@ -21,7 +21,6 @@ def config_app():
     return app
 
 app = config_app()
-
 socketio = SocketIO(app)
 
 # Orders API
@@ -60,14 +59,14 @@ def receive_new_order():
     }.get(request.form.get('drink'))
     if drink is None:
         return (
-            'Something\'s wrong with your order, '
-            'perhaps you meant to select "Other".',
-            400)
+            'Unable to process Entry: Something\'s wrong with '
+            'your order, perhaps you meant to select "Other".',
+            422)
     broadcast(socketio, drink, message)
     order = Order(drink, message)
     json_data = order.make_as_json
     post_order(json_data)
-    return ('drink', 204)
+    return ('Order created', 201)
 
 ## Pages renderers
 
@@ -90,7 +89,6 @@ def get_live_orders():
 @app.route('/new', methods=['GET'])
 def get_new_order():
     return render_template('orders/new-order.html')
-
 
 if __name__ == '__main__':
     db.create_all()
