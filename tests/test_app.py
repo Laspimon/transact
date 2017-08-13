@@ -4,6 +4,7 @@ import unittest
 from flask import url_for
 from urllib.parse import urlparse
 
+from app.consumer import consume
 from app.helpers import broadcast
 from app.members import Order
 from server import app
@@ -12,12 +13,31 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 app.testing = True
 
 class RedisStub():
+    queues = {}
 
-    def rpush(*args):
-        pass
+    def __init__(self, decode_responses = False):
+        self.decode_responses = decode_responses
 
-    def blpop(*args):
-        pass
+    def rpush(self, queue, json_string):
+        if not isinstance(self.queues.get(queue), list):
+            self.queues[queue] = []
+        self.queues.get(queue).append(json_string)
+
+    def blpop(self, queues, timeout = 0):
+        """This is for testing; No reason to implement blocking behavior.
+        """
+        if isinstance(queues, str):
+            queues = [queues]
+        for queue in queues:
+            if self.queues.get(queue) is None:
+                continue
+            if len(self.queues) == 0:
+                continue
+            val = self.queues.get(queue).pop(0)
+            if self.decode_responses:
+                val = json.loads(val)
+            return (queue, val)
+        # Returns None if empty
 
 class ServerTestCase(unittest.TestCase):
 
@@ -71,7 +91,7 @@ class ServerTestCase(unittest.TestCase):
 
     def test_new_returns_201_on_success(self):
         data = {'drink': 'g&t', 'message': 'do nothing'}
-        app.redis = RedisStub
+        app.redis = RedisStub()
         with app.test_request_context():
             new = url_for('receive_new_order')
         res = self.app_client.post(new, data=data)
@@ -178,6 +198,19 @@ class ServerTestCase(unittest.TestCase):
         data_0 = json.loads(res.data)[0]
         self.assertEqual(data_0['drink'], 'Chiquita Sunrise')
         assert 'entirely sure' in data_0['message']
+
+    def test_consume_empty_queue_writes_none(self):
+        redis = RedisStub(decode_responses = True)
+        consume(RedisStub(), self.db, Order, queues = ['queue'])
+        self.assertIsNone(Order.query.first())
+
+    def test_consume_writes_data_to_db(self):
+        redis = RedisStub(decode_responses = True)
+        order = Order('Jack Daniels', 'Where is my order, Louise?')
+        redis.rpush('queue', order.make_as_json)
+        consume(RedisStub(), self.db, Order, queues = ['queue'])
+        self.assertEqual(Order.query.first().drink, 'Jack Daniels')
+        self.assertEqual(Order.query.first().message, 'Where is my order, Louise?')
 
 if __name__ == '__main__':
     unittest.main()
