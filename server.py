@@ -105,13 +105,13 @@ def get_new_order():
     return render_template('orders/new-order.html')
 
 if __name__ == '__main__':
-    db.create_all()
     logger = simple_logger('transact.log', 'input_log')
     try:
         # If 'dbwriter' is passed as an argument, launch
         # the consumer, else launch the main app.
         # At least one of each is required.
         if 'dbwriter' in sys.argv:
+            db.create_all()
             if len(Order.query.all()) == 0:
                 print('Preparing demo data...')
                 json_data = prepare_demo_data()
